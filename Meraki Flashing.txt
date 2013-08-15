@@ -1,0 +1,92 @@
+XXX setup from beginning
+
+2. boot settings
+
+fconfig bootp_my_ip 192.168.1.1
+fconfig bootp_my_ip_mask 255.255.255.0
+fconfig bootp_server_ip 192.168.1.10
+fconfig console_baud_rate 9600
+
+fconfig boot_script_data 
+check_mac
+fis load -d linux
+exec
+
+XXXX WITHIN OPENWRT
+
+cd /tmp
+scp killerwhale.lan:/var/www/openwrt-atheros-vmlinux.gz .
+scp killerwhale.lan:/var/www/openwrt-atheros-root.squashfs .
+mtd -e linux write openwrt-atheros-vmlinux.gz linux
+mtd -e rootfs write openwrt-atheros-root.squashfs rootfs
+reboot
+
+XXXX WORKING FROM RED BOOT
+
+load -r -b %{FREEMEMLO} -m http -h 192.168.1.64 /openwrt-atheros-vmlinux.gz
+fis init
+fis create -e 0x80041000 -r 0x80041000 linux
+load -r -b %{FREEMEMLO} -m http -h 192.168.1.64 /openwrt-atheros-root.squashfs
+fis create rootfs
+
+
+XXXX
+fis init
+
+load -r -b %{FREEMEMLO} -m http -h 192.168.84.9 openwrt-atheros-vmlinux.gz
+
+fis create -e 0x80041000 -r 0x80041000 linux
+
+load -r -b %{FREEMEMLO} -m http -h 192.168.84.9 openwrt-atheros-root.jffs2-64k
+
+fis create rootfs
+
+//TEST
+load -r -d -b 0x80041000 -m http -h 192.168.84.9 openwrt-atheros-vmlinux.gz
+
+//OTHER
+fis init
+
+fis create -b 0x80041000 -l 0x340000 -f 0xa8150000 -e 0x80041000 -r 0x80041000 -n linux
+ 
+fis create -b 0x80041000 -l 0x340000 -f 0xa8490000 -e 0x80041000 -r 0x80041000 -n rootfs 
+
+load -r -b 0x80041000 -m http -h 192.168.1.50 /~nmcdavit/openwrt-atheros-vmlinux.gz
+
+fis create -r 0x80041000 -e 0x80041000 linux
+
+load -r -b 0x80041000 -m http -h 192.168.1.50 /~nmcdavit/openwrt-atheros-root.jffs2-64k
+
+fis create -r 0x80041000 -e 0x80041000 rootfs
+
+fis list
+
+//ALTERNATE LINUX
+
+load -r -b 0x80041000 -m http -h 192.168.84.9 openwrt-atheros-vmlinux.elf
+
+fis create -r 0x80041000 -e 0x80041000 linux
+
+load -r -b 0x80041000 -m http -h 192.168.84.9 openwrt-atheros-vmlinux.lzma
+
+fis create -r 0x80041000 -e 0x80041000 linux
+
+//
+RedBoot> fis list
+Name              FLASH addr  Mem addr    Length      Entry point
+RedBoot           0xA8000000  0xA8000000  0x00030000  0x00000000
+linux             0xA8150000  0x80041000  0x00340000  0x80041000
+rootfs            0xA8490000  0x80041000  0x00340000  0x80041000
+FIS directory     0xA87D0000  0xA87D0000  0x0000F000  0x00000000
+RedBoot config    0xA87DF000  0xA87DF000  0x00001000  0x00000000
+RedBoot> fis free
+  0xA8030000 .. 0xA8150000
+
+
+# Example
+
+RedBoot> fis init
+RedBoot> load -r -b 0x80041000 -m tftp -h 192.168.84.9 openwrt-atheros-2.6-vmlinux.gz
+RedBoot> fis create -r 0x80041000 -l 0x180000 -e 0x80041000 linux
+RedBoot> load -r -b 0x80041000 -m tftp -h 192.168.84.9 openwrt-atheros-2.6-root.jffs2-64k
+RedBoot> fis create -r 0x80041000 -l 0x620000 rootfs

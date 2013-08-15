@@ -1,0 +1,23 @@
+### FLASHING
+load -r -b %{FREEMEMLO} -m http -h 192.168.1.64 /openwrt-atheros-vmlinux.gz
+fis init
+fis create -e 0x80041000 -r 0x80041000 linux
+load -r -b %{FREEMEMLO} -m http -h 192.168.1.64 /openwrt-atheros-root.squashfs
+fis create rootfs
+
+reset 
+
+### DISABLE LEDS
+/etc/init.d/leds stop; /etc/init.d/leds disable
+/etc/init.d/firewall disable; /etc/init.d/firewall stop
+/etc/init.d/dnsmasq disable; /etc/init.d/dnsmasq stop
+
+### SETUP /DEV/I2C
+opkg update
+opkg install i2c-gpio-custom
+
+//CREATE a lsmod file
+echo 'i2c-gpio-custom bus0=0,1,0' > /etc/modules.d/60-i2c-gpio-custom
+
+### INSTALL PIDd
+echo 'i2c-gpio-custom bus0=0,1,0' > /etc/modules.d/60-i2c-gpio-custom

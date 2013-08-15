@@ -1,0 +1,15 @@
+insmod i2c-gpio-custom bus0=0,1,0
+
+//built into kernel you add the bus via...
+i2c-gpio-custom.bus0 0,1,0
+
+opkg update; opkg install i2c-tools
+
+0 sclk
+1 sda
+
+i2c-gpio-custom bus0=0,1,0
+
+
+//CREATE a lsmod file
+echo 'i2c-gpio-custom bus0=0,1,0' > /etc/modules.d/60-i2c-gpio-custom
